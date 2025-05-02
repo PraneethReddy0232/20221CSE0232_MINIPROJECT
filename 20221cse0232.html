@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="shoppingApp">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shopping List Mini Project</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-image: url('back.jpeg');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-attachment: fixed;
+    }
+    .container {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      width: 100%;
+      max-width: 800px;
+      box-sizing: border-box;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2C3E50;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .btn-danger {
+      background-color: #e74c3c;
+    }
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+    input[type="text"] {
+      width: 70%;
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      margin-right: 15px;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus {
+      border-color: #2980b9;
+      outline: none;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 20px;
+    }
+    li {
+      background: #ecf0f1;
+      margin-bottom: 12px;
+      padding: 12px 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      color: #34495e;
+    }
+    li button {
+      background-color: #e74c3c;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+    li button:hover {
+      background-color: #c0392b;
+    }
+    .categories-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 30px;
+    }
+    .category-card {
+      cursor: pointer;
+      width: 130px;
+      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: #fff;
+      transition: transform 0.3s ease;
+      padding: 15px;
+    }
+    .category-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .category-card img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 12px;
+      border-radius: 8px;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #7f8c8d;
+      font-style: italic;
+      font-size: 14px;
+    }
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+      text-align: center;
+    }
+    .suggestions {
+      margin-top: 20px;
+    }
+    .suggestions span {
+      display: inline-block;
+      background: #3498db;
+      color: white;
+      padding: 8px 14px;
+      margin: 6px 8px 0 0;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    .suggestions span:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body ng-controller="ShoppingController">
+
+<div class="container">
+
+  <!-- Home Page -->
+  <div ng-show="currentPage === 'home'">
+    <h1>Shopping List Web Application</h1>
+<center><p>"Shopping therapy is just a click away...."</p>
+<img src="homelog.png" alt="Description of image" />
+<br>
+    <button ng-click="goToPage('categories')">Browse Categories</button>
+  </center></div>
+
+  <!-- Categories Page -->
+  <div ng-show="currentPage === 'categories'">
+    <h2>Select a Category to Shop</h2>
+    <div class="categories-grid">
+      <div class="category-card" ng-repeat="cat in categories" ng-click="openCategory(cat.id)" tabindex="0" ng-keypress="($event.which === 13) && openCategory(cat.id)" role="button" aria-label="Open {{cat.name}} category">
+        <img ng-src="{{cat.img}}" alt="{{cat.name}}" />
+        <div>{{cat.name}}</div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top: 30px;">
+      <button ng-click="finish()">Finish & View Final List</button>
+      <button ng-click="goToPage('home')">Back to Home</button>
+    </div>
+  </div>
+
+  <!-- Category Pages -->
+  <div ng-repeat="cat in categories" ng-show="currentPage === cat.id">
+    <h2>{{cat.name}} List</h2>
+    <div class="error" ng-if="errorText">{{errorText}}</div>
+    <form ng-submit="addItem(cat.id)" novalidate>
+      <input type="text" ng-model="newItems[cat.id]" placeholder="Add new item to {{cat.name}}" aria-label="New item {{cat.name}}" />
+      <button type="submit">Add Item</button>
+    </form>
+    
+    <div class="suggestions" ng-if="suggestedItems[cat.id].length">
+      <strong>Suggested Items:</strong><br/>
+      <span ng-repeat="suggestion in suggestedItems[cat.id]" ng-click="addSuggestedItem(cat.id, suggestion)" tabindex="0" ng-keypress="($event.which === 13) && addSuggestedItem(cat.id, suggestion)" role="button" aria-label="Add suggested item {{suggestion}}">
+        {{suggestion}}
+      </span>
+    </div>
+
+    <ul>
+      <li ng-repeat="item in categoryLists[cat.id] track by $index">
+        {{item}}
+        <button ng-click="removeItem(cat.id, $index)" aria-label="Remove {{item}}">Delete</button>
+      </li>
+    </ul>
+    <div style="margin-top: 20px;">
+      <button ng-click="finalizeCategory(cat.id)">Finalize {{cat.name}} List</button>
+      <button class="btn-secondary" ng-click="goToPage('categories')">Back to Categories</button>
+    </div>
+  </div>
+
+  <!-- Final Page -->
+  <div ng-show="currentPage === 'final'">
+    <h2>Final Combined Shopping List</h2>
+    <p>Total items added: <strong>{{finalList.length}}</strong></p>
+    <ul>
+      <li ng-repeat="item in finalList track by $index">
+        <span ng-if="!editingFinal">{{item}}</span>
+        <input ng-if="editingFinal" type="text" ng-model="finalList[$index]" aria-label="Edit item {{$index + 1}}" />
+        <button class="btn-danger" ng-click="removeFinalItem($index)" aria-label="Remove {{item}}">Delete</button>
+      </li>
+    </ul>
+    <div style="margin-top: 20px;">
+      <button ng-if="!editingFinal" ng-click="editFinalList()">Edit</button>
+      <button ng-if="editingFinal" ng-click="saveFinalList()">Save</button>
+      <button class="btn-secondary" ng-if="!editingFinal" ng-click="goToPage('categories')">Back to Categories</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  angular.module('shoppingApp', []).controller('ShoppingController', ['$scope', function($scope) {
+    $scope.currentPage = 'home';
+
+    // New Categories
+    $scope.categories = [
+      {id: 'clothing', name: 'Clothing', img: 'clothing.jpeg'},
+      {id: 'footwear', name: 'Footwear', img: 'foot.jpeg'},
+      {id: 'electronics', name: 'Home Appliances', img: 'elec.png'},
+      {id: 'home_decor', name: 'Home Decor', img: 'homedecor.png'},
+      {id: 'sports', name: 'Sports Equipment', img: 'sport.jpeg'}
+    ];
+
+    $scope.suggestedItems = {
+      clothing: ['T-shirt', 'Jeans', 'Jacket', 'Shirt', 'Sweater'],
+      footwear: ['Sneakers', 'Boots', 'Sandals', 'Slippers', 'Loafers'],
+      electronics: ['Fridge', 'Oven', 'Washing Machine', 'AC', 'Smartwatch'],
+      home_decor: ['Couch', 'Table', 'Lamp', 'Curtains', 'Vases'],
+      sports: ['Football', 'Basketball', 'Tennis Racket', 'Yoga Mat', 'Dumbbells']
+    };
+
+    $scope.categoryLists = {
+      clothing: [],
+      footwear: [],
+      electronics: [],
+      home_decor: [],
+      sports: []
+    };
+
+    $scope.newItems = {
+      clothing: '',
+      footwear: '',
+      electronics: '',
+      home_decor: '',
+      sports: ''
+    };
+
+    $scope.finalList = [];
+    $scope.errorText = '';
+
+    $scope.goToPage = function(page) {
+      $scope.currentPage = page;
+      $scope.errorText = '';
+    };
+
+    $scope.openCategory = function(catId) {
+      $scope.currentPage = catId;
+      $scope.errorText = '';
+    };
+
+    $scope.addItem = function(catId) {
+      var item = $scope.newItems[catId] ? $scope.newItems[catId].trim() : '';
+      if (!item) {
+        $scope.errorText = 'Please enter an item.';
+        return;
+      }
+      var duplicate = $scope.categoryLists[catId].some(function(existingItem) {
+        return existingItem.toLowerCase() === item.toLowerCase();
+      });
+      if (duplicate) {
+        $scope.errorText = 'This item is already in the list.';
+        return;
+      }
+      $scope.categoryLists[catId].push(item);
+      $scope.newItems[catId] = '';
+      $scope.errorText = '';
+    };
+
+    $scope.addSuggestedItem = function(catId, suggestion) {
+      var duplicate = $scope.categoryLists[catId].some(function(existingItem) {
+        return existingItem.toLowerCase() === suggestion.toLowerCase();
+      });
+      if (!duplicate) {
+        $scope.categoryLists[catId].push(suggestion);
+        $scope.errorText = '';
+      }
+    };
+
+    $scope.removeItem = function(catId, index) {
+      $scope.categoryLists[catId].splice(index, 1);
+      $scope.errorText = '';
+    };
+
+    $scope.finalizeCategory = function(catId) {
+      if ($scope.categoryLists[catId].length === 0) {
+        alert('Please add at least one item before finalizing.');
+        return;
+      }
+      alert($scope.categories.find(c => c.id === catId).name + ' list finalized.');
+      $scope.goToPage('categories');
+    };
+
+    $scope.finish = function() {
+      $scope.finalList = [];
+      angular.forEach($scope.categoryLists, function(list) {
+        $scope.finalList = $scope.finalList.concat(list);
+      });
+      if ($scope.finalList.length === 0) {
+        alert('No items added in any category.');
+        return;
+      }
+      $scope.goToPage('final');
+    };
+
+    $scope.removeFinalItem = function(index) {
+      $scope.finalList.splice(index, 1);
+    };
+
+    $scope.editFinalList = function() {
+      $scope.editingFinal = true;
+    };
+
+    $scope.saveFinalList = function() {
+      $scope.finalList = $scope.finalList.filter(function(item) {
+        return item.trim() !== '';
+      });
+      $scope.editingFinal = false;
+    };
+  }]);
+</script>
+
+</body>
+</html>
